@@ -6,23 +6,22 @@
 use warnings;
 use strict;
 
-use HTTP::Tiny;
+use LWP::UserAgent;
 use JSON;
 use Time::HiRes qw(gettimeofday);
+use Net::Ping;
+
 
 # 返回 github 的所有 ip 地址
 sub request_github {
-    my $response = HTTP::Tiny->new->get(
-        'https://api.github.com/meta',
-        {
-            headers => { 'Accept' => 'plication/vnd.github.v3+json"' }
-        }
-    );
-    if ( $response->{status} != 200 ) {
-        die "github response code  $response->{status}";
-    }
-
-    my $content      = $response->{content};
+    my $ua           = LWP::UserAgent->new;
+    my $req          = HTTP::Request->new(GET => 'https://api.github.com/meta');
+    $req->header(Accept => "application/vnd.github.v3+json");
+    my $res          = $ua->request($req);
+    unless($res->is_success) {
+        print $res->status_line, "\n";
+   } 
+    my $content      = $res->content;
     my $json         = JSON->new->allow_nonref;
     my $response_obj = $json->decode($content);
 
@@ -57,7 +56,7 @@ sub check_icmp {
     my $p = Net::Ping->new();
     $p->hires();
     my ($ret , $duraiton, $ip) = $p->ping($host,5.5);
-    printf "$ip %s ms\n",$duraiton * 1000;
+    printf "$ip %2.2fs \n",$duraiton;
 }
 my @ips = request_github();
 foreach my $ip (@ips) {
