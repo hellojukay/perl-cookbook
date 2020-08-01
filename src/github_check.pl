@@ -14,7 +14,7 @@ use Net::Ping;
 
 # 返回 github 的所有 ip 地址
 sub request_github {
-    my $ua           = LWP::UserAgent->new;
+    my $ua           = LWP::UserAgent->new(Agent => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36');
     my $req          = HTTP::Request->new(GET => 'https://api.github.com/meta');
     $req->header(Accept => "application/vnd.github.v3+json");
     my $res          = $ua->request($req);
@@ -30,7 +30,6 @@ sub request_github {
 
     my @result;
     foreach my $ip (@ips) {
-
         # 原 ip 格式为 "192.30.252.0/22",
         my ( $ip, $mask ) = split( /\//, $ip );
         push @result, $ip;
@@ -56,7 +55,7 @@ sub check_icmp {
     my $p = Net::Ping->new();
     $p->hires();
     my ($ret , $duraiton, $ip) = $p->ping($host,5.5);
-    printf "$ip %2.2fs \n",$duraiton;
+    printf "%-18s %2.2fs \n",$ip , $duraiton;
 }
 my @ips = request_github();
 foreach my $ip (@ips) {
