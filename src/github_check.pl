@@ -1,7 +1,4 @@
 #!/bin/perl
-# 从 github 的 api 接口获取所有的 github ip 地址
-# github api 参考文档地址: https://docs.github.com/cn/rest/reference/meta
-# curl -H "Accept: application/vnd.github.v3+json"  https://api.github.com/meta
 
 use warnings;
 use strict;
@@ -12,6 +9,9 @@ use threads;
 use threads::shared;
 use HTTP::Tiny;
 
+# 从 github 的 api 接口获取所有的 github ip 地址
+# github api 参考文档地址: https://docs.github.com/cn/rest/reference/meta
+# curl -H "Accept: application/vnd.github.v3+json"  https://api.github.com/meta
 my @ips = qw(
    192.30.252.0
    185.199.108.0
