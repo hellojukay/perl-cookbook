@@ -8,6 +8,7 @@ use Net::Ping;
 use threads;
 use threads::shared;
 use HTTP::Tiny;
+use IO::Socket;
 
 # 从 github 的 api 接口获取所有的 github ip 地址
 # github api 参考文档地址: https://docs.github.com/cn/rest/reference/meta
@@ -59,22 +60,46 @@ sub check_http {
       ( $end_mcsecond - $start_mcsecond ) / ( 1000 * 1000 );
 }
 
-sub check_ssh {
-    my $ip = $_[0];
-}
 sub check_icmp {
     my $host = $_[0];
     my $p = Net::Ping->new();
     $p->hires();
-    my ($ret , $duraiton, $ip) = $p->ping($host,5.5);
-    printf "%-18s %2.2fs \n",$ip , $duraiton;
+    my ($ret , $duraiton, $ip) = $p->ping($host,30);
+    $p->close();
+    if(!defined($ret)){
+        return "TIMEOUT"
+    }
+    return sprintf("%2.2fs",$duraiton);
 }
 
+# 检查 ssh 延时, 尝试链接服务器 22 端口，并且读取一个字节
+# 返回 2 个值，($ok,$time), $ok 表示是否链接成功，$time 表示链接耗时
+sub check_ssh {
+    my $sock = IO::Socket::INET->new(
+        Proto => "tcp",
+        PeerAddr => $_[0],
+        PeerPort => 22,
+    );
+    my ( $ssh_start_sec, $ssh_start_mcsecond ) = gettimeofday();
+    my $buf;
+    my $len = 1;
+    if(!defined($sock)){
+        return "TIMEOUT";
+    }
+    $sock->sysread($buf,$len);
+    my ($ssh_end_sec, $ssh_end_mcsecond ) = gettimeofday();
+    my $ssh_time = ($ssh_end_sec - $ssh_start_sec) + ($ssh_end_mcsecond - $ssh_start_mcsecond) / (1000*1000);
+    return sprintf("%2.2fs",$ssh_time);
+}
 my $count :shared;
 $count = $#ips;
+printf "%-20s%-10s%-10s\n","IP", "SSH","ICMP";
 foreach my $ip (@ips) {
     threads->new(sub{
-        check_icmp($_[0]);
+        my $host = $_[0];
+        my $ssh_duration = check_ssh($host);
+        my $ping_duration = check_icmp($host);
+        printf "%-20s%-10s%-10s\n",$host,$ssh_duration,$ping_duration;
         {
             lock($count);
             $count = $count -1
