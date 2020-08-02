@@ -11,6 +11,11 @@ use HTTP::Tiny;
 use IO::Socket;
 use LWP::Simple;
 use JSON::PP;
+use Class::Struct;
+struct(GitHub => {
+    web => '@',
+    git => '@',
+});
 
 # 从 github 的 api 接口获取所有的 github ip 地址
 # github api 参考文档地址: https://docs.github.com/cn/rest/reference/meta
@@ -31,15 +36,13 @@ sub github_ip{
             my ($ip,$mask) = split /\//, $ip_with_mask;
             push @git_ip, $ip;
         }
-        return @web_ip,@git_ip;
+        return GitHub->new(web=>\@web_ip,git => \@git_ip);
     }else {
         print "network failure\n";
         exit 1;
     }
 }
 print "waiting https://api.github.com/meta ...";
-my (@web_ip,@git_ip) = github_ip();
-print("done\n");
 sub check_http {
     my $ip = $_[0];
     my ( $start_sec, $start_mcsecond ) = gettimeofday();
@@ -71,6 +74,13 @@ sub check_ssh {
 }
 
 
+my $github = github_ip();
+print("done\n");
+my @web_ip = $github->web;
+my @git_ip = $github->git;
+foreach my $git (@web_ip) {
+    print $git;
+}
 my $count :shared;
 $count = $#web_ip + $#git_ip;
 foreach my $ip (@web_ip) {
