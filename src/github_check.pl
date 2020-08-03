@@ -30,10 +30,12 @@ sub github_ip{
         my @git      = @{$response->{git}};
         foreach my $ip_with_mask (@web) {
             my ($ip,$mask) = split /\//, $ip_with_mask;
+            next if($mask != "32");
             push @web_ip, $ip;
         }
         foreach my $ip_with_mask (@git) {
             my ($ip,$mask) = split /\//, $ip_with_mask;
+            next if($mask != "32");
             push @git_ip, $ip;
         }
         return GitHub->new(web=>\@web_ip,git => \@git_ip);
