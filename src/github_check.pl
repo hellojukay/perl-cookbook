@@ -1,4 +1,9 @@
 #!/bin/perl
+# 需要安装下面两个包来支持 https
+# 　1. Net::SSLeay
+#   2. IO::Socket::SSL
+
+
 
 use warnings;
 use strict;
@@ -21,7 +26,12 @@ struct(GitHub => {
 # github api 参考文档地址: https://docs.github.com/cn/rest/reference/meta
 # curl -H "Accept: application/vnd.github.v3+json"  https://api.github.com/meta
 sub github_ip{
-    my $content = get("https://api.github.com/meta");
+    my $response = HTTP::Tiny->new->get("https://api.github.com/meta",{timeout => 10});
+    unless($response->{success}){
+        printf "failed\n";
+        exit(1);
+    }
+    my $content = $response->{content};
     if($content) {
         my @web_ip;
         my @git_ip;
