@@ -5,3 +5,4 @@ my perl script collect
 * [统计各个进程 TCP 连接数](src/count_tcp_number.pl)
 * [单行 perl 替换 awk](src/perl_one_line_awk.md)
 * [检测 github.com 延迟](src/github_check.pl)
+* [windows 下实现递归删除文件](src/rm.pl)
