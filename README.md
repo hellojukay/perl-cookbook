@@ -6,3 +6,4 @@ my perl script collect
 * [单行 perl 替换 awk](src/perl_one_line_awk.md)
 * [检测 github.com 延迟](src/github_check.pl)
 * [windows 下实现递归删除文件](src/rm.pl)
+* [perl 实现终端进度条](src/progress.pl)
